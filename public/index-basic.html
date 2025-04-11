@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Timesheet Grid</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f0f0f0;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    td {
+      background-color: #fff;
+    }
+
+    td[contenteditable]:focus {
+      outline: 2px solid #007bff;
+      background-color: #e7f1ff;
+    }
+
+    .day-label {
+      font-weight: bold;
+      background-color: #f9f9f9;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Editable Weekly Timesheet</h2>
+<div style="overflow-x: auto;">
+  <table id="timesheet">
+    <thead>
+      <tr>
+        <th>Day / Time</th>
+        <!-- Generate hour headers from 8 to 21 -->
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows for days will go here -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const hours = Array.from({ length: 14 }, (_, i) => i + 8); // 8 to 21
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+  const tableHead = document.querySelector("#timesheet thead tr");
+  const tableBody = document.querySelector("#timesheet tbody");
+
+  // Generate hour headers
+  hours.forEach(hour => {
+    const th = document.createElement("th");
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    th.textContent = `${hour12}:00 ${ampm}`;
+    tableHead.appendChild(th);
+  });
+
+  // Generate rows for each day
+  days.forEach(day => {
+    const tr = document.createElement("tr");
+
+    // First cell with the day name
+    const tdDay = document.createElement("td");
+    tdDay.textContent = day;
+    tdDay.classList.add("day-label");
+    tr.appendChild(tdDay);
+
+    // Create editable cells for each hour
+    hours.forEach(() => {
+      const td = document.createElement("td");
+      td.contentEditable = "true";
+      tr.appendChild(td);
+    });
+
+    tableBody.appendChild(tr);
+  });
+</script>
+
+</body>
+</html>

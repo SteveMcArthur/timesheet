@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ext JS + Bootstrap Timesheet</title>
+  <!-- Bootstrap CSS -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Ext JS CSS -->
+  <link rel="stylesheet" href="/css/theme-triton/resources/theme-triton-all.css">
+  
+  <!-- Ext JS -->
+  <script type="text/javascript" src="/js/ext-all.js"></script>
+
+  <style>
+    body {
+      padding: 20px;
+    }
+    #grid-container {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="text-center">Weekly Timesheet</h2>
+    <div id="grid-container"></div>
+  </div>
+
+  <script type="text/javascript">
+    Ext.onReady(function () {
+      const hours = [];
+      for (let h = 8; h <= 21; h++) {
+        let hour = h % 12 === 0 ? 12 : h % 12;
+        let suffix = h < 12 ? "AM" : "PM";
+        hours.push(`${hour}:00 ${suffix}`);
+      }
+
+      // Define the fields (columns): Day + time slots
+      const columns = [
+        {
+          text: 'Day',
+          dataIndex: 'day',
+          locked: true,
+          width: 120,
+          editor: 'textfield'
+        },
+        ...hours.map(hour => ({
+          text: hour,
+          dataIndex: hour,
+          flex: 1,
+          editor: 'textfield'
+        }))
+      ];
+
+      // Sample initial data
+      const data = [
+        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+      ].map(day => {
+        const row = { day };
+        hours.forEach(hour => {
+          row[hour] = '';
+        });
+        return row;
+      });
+
+      // Create the grid
+      Ext.create('Ext.grid.Panel', {
+        renderTo: 'grid-container',
+        title: 'Editable Weekly Timesheet',
+        width: '100%',
+        height: 500,
+        scrollable: true,
+        store: {
+          fields: ['day', ...hours],
+          data: data
+        },
+        columns: columns,
+        selModel: 'cellmodel',
+        plugins: {
+          cellediting: {
+            clicksToEdit: 1
+          }
+        },
+        viewConfig: {
+          stripeRows: true
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Responsive Timesheet (Ext JS + Bootstrap)</title>
+
+  <!-- Bootstrap -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Ext JS -->
+  <link rel="stylesheet" href="/css/theme-triton/resources/theme-triton-all.css">
+
+  <script type="text/javascript" src="/js/ext-all.js"></script>
+
+  <style>
+    body {
+      padding: 20px;
+    }
+
+    #grid-container {
+      margin-top: 20px;
+    }
+
+    .x-grid-row {
+      height: 60px;
+    }
+
+    .x-column-header {
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .x-grid-cell-inner {
+      white-space: normal;
+      text-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .x-grid-header-ct .x-column-header {
+        font-size: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <h2 class="text-center mb-4">Responsive Timesheet</h2>
+    <div class="text-end mb-3">
+      <button id="saveButton" class="btn btn-success">Save Timesheet</button>
+    </div>
+    <div id="grid-container"></div>
+  </div>
+
+  <script type="text/javascript">
+    Ext.onReady(function () {
+      const hours = [];
+      for (let h = 8; h <= 21; h++) {
+        let hour = h;
+        hours.push(`${hour}:00 - ${hour + 1}:00`);
+      }
+
+      const fields = ['day', ...hours];
+
+      // Sample initial data
+      const data = [
+        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+      ].map(day => {
+        const row = { day };
+        hours.forEach(hour => {
+          row[hour] = '';
+        });
+        return row;
+      });
+
+      console.log(data);
+
+      const store = Ext.create('Ext.data.Store', {
+        fields: fields,
+        data: data,
+        proxy: {
+          type: 'ajax',
+          url: '/api/timesheet',
+          reader: {
+            type: 'json'
+          },
+          writer: {
+            type: 'json'
+          }
+        },
+        autoLoad: true,
+        autoSync: false // we’ll trigger save manually
+      });
+
+      console.log(store.data.items);
+
+      const columns = [
+        {
+          text: 'Day',
+          dataIndex: 'day',
+          width: 100,
+          locked: true
+        },
+        ...hours.map(hour => ({
+          text: hour,
+          dataIndex: hour,
+          flex: 1,
+          minWidth: 80,
+          editor: {
+            xtype: 'textfield',
+            allowBlank: true
+          }
+        }))
+      ];
+
+  
+
+
+      const grid = Ext.create('Ext.grid.Panel', {
+        renderTo: 'grid-container',
+        title: 'Editable Weekly Timesheet',
+        store: store,
+        columns: columns,
+        columnLines: true,
+        height: 500,
+        scrollable: true,
+        width: '100%',
+        selModel: 'cellmodel',
+        plugins: {
+          cellediting: {
+            clicksToEdit: 1
+          }
+        },
+        responsiveConfig: {
+          'width < 768': {
+            height: 400
+          }
+        },
+        viewConfig: {
+          stripeRows: true
+        }
+      });
+
+   
+
+
+      // Save Button
+      document.getElementById("saveButton").addEventListener("click", function () {
+        //const modified = store.getModifiedRecords();
+        let dataToSave = [];
+        store.data.items.forEach(item => {
+          dataToSave.push(item.data);
+        })
+
+        if (dataToSave.length === 0) {
+          alert("No changes to save.");
+          return;
+        }
+
+        Ext.Ajax.request({
+          url: '/api/timesheet',
+          method: 'POST',
+          jsonData: dataToSave,
+          success: function () {
+            alert('Timesheet saved successfully!');
+            store.commitChanges(); // clear dirty state
+          },
+          failure: function () {
+            alert('Failed to save. Please try again.');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
